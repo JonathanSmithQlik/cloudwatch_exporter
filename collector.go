@@ -26,13 +26,13 @@ type cwCollectorTemplate struct {
 }
 
 type cwCollector struct {
-	Region							string
-	Target                          string
-	ScrapeTime                      prometheus.Gauge
-	ScrapeDurationHistogram         prometheus.Histogram
-	ErroneousRequests        	 	prometheus.Counter
-	SuccessfulRequests       	 	prometheus.Counter
-	Template                 	 	*cwCollectorTemplate
+	Region            string
+	Target            string
+	ScrapeTime        prometheus.Gauge
+	ScrapeDurationHistogram	prometheus.Histogram
+	ErroneousRequests prometheus.Counter
+	SuccessfulRequests prometheus.Counter
+	Template          *cwCollectorTemplate
 }
 
 // generateTemplates creates pre-generated metrics descriptions so that only the metrics are created from them during a scrape.
