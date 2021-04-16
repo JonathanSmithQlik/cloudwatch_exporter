@@ -72,7 +72,6 @@ func handleTarget(w http.ResponseWriter, req *http.Request) {
 	configMutex.Lock()
 	registry := prometheus.NewRegistry()
 	collector, err := NewCwCollector(target, task, region)
-
 	if err != nil {
 		// Can't create the collector, display error
 		fmt.Fprintf(w, "Error: %s\n", err.Error())
