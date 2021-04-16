@@ -26,13 +26,13 @@ type cwCollectorTemplate struct {
 }
 
 type cwCollector struct {
-	Region                   string
-	Target                   string
-	ScrapeTime               prometheus.Gauge
-	ScrapeTimeBuckets        prometheus.Histogram
-	ErroneousRequests        prometheus.Counter
-	SuccessfulRequests       prometheus.Counter
-	Template                 *cwCollectorTemplate
+	Region							string
+	Target                          string
+	ScrapeTime                      prometheus.Gauge
+	ScrapeDurationHistogram         prometheus.Histogram
+	ErroneousRequests        	 	prometheus.Counter
+	SuccessfulRequests       	 	prometheus.Counter
+	Template                 	 	*cwCollectorTemplate
 }
 
 // generateTemplates creates pre-generated metrics descriptions so that only the metrics are created from them during a scrape.
@@ -112,7 +112,7 @@ func NewCwCollector(target string, taskName string, region string) (*cwCollector
 			Name: "cloudwatch_exporter_scrape_duration_seconds",
 			Help: "Time this CloudWatch scrape took, in seconds.",
 		}),
-		ScrapeTimeBuckets: prometheus.NewHistogram(prometheus.HistogramOpts{
+		ScrapeDurationHistogram: prometheus.NewHistogram(prometheus.HistogramOpts{
 			Name: "cloudwatch_exporter_scrape_duration_seconds_buckets",
 			Help: "Time this CloudWatch scrape took, in seconds and shown in buckets",
 			Buckets: []float64{0.1, 0.25, 0.5, 1., 5., 8., 10., },
@@ -134,17 +134,17 @@ func (c *cwCollector) Collect(ch chan<- prometheus.Metric) {
 	scrape(c, ch)
 	timeSeconds := time.Since(now).Seconds()
 	c.ScrapeTime.Set(timeSeconds)
-	c.ScrapeTimeBuckets.Observe(timeSeconds)
+	c.ScrapeDurationHistogram.Observe(timeSeconds)
 
 	ch <- c.ScrapeTime
-	ch <- c.ScrapeTimeBuckets
+	ch <- c.ScrapeDurationHistogram
 	ch <- c.ErroneousRequests
 	ch <- c.SuccessfulRequests
 }
 
 func (c *cwCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- c.ScrapeTime.Desc()
-	ch <- c.ScrapeTimeBuckets.Desc()
+	ch <- c.ScrapeDurationHistogram.Desc()
 	ch <- c.ErroneousRequests.Desc()
 	ch <- c.SuccessfulRequests.Desc()
 
