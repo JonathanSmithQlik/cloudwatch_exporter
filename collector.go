@@ -115,6 +115,7 @@ func NewCwCollector(target string, taskName string, region string) (*cwCollector
 		ScrapeTimeBuckets: prometheus.NewHistogram(prometheus.HistogramOpts{
 			Name: "cloudwatch_exporter_scrape_duration_seconds_buckets",
 			Help: "Time this CloudWatch scrape took, in seconds and shown in buckets",
+			Buckets: []float64{0.1, 0.25, 0.5, 1., 5., 8., 10., },
 		}),
 		ErroneousRequests: prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: "cloudwatch_exporter_erroneous_requests",
