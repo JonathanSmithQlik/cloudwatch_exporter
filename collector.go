@@ -26,11 +26,13 @@ type cwCollectorTemplate struct {
 }
 
 type cwCollector struct {
-	Region            string
-	Target            string
-	ScrapeTime        prometheus.Gauge
-	ErroneousRequests prometheus.Counter
-	Template          *cwCollectorTemplate
+	Region                   string
+	Target                   string
+	ScrapeTime               prometheus.Gauge
+	ScrapeTimeBuckets        prometheus.Histogram
+	ErroneousRequests        prometheus.Counter
+	SuccessfulRequests       prometheus.Counter
+	Template                 *cwCollectorTemplate
 }
 
 // generateTemplates creates pre-generated metrics descriptions so that only the metrics are created from them during a scrape.
@@ -110,9 +112,17 @@ func NewCwCollector(target string, taskName string, region string) (*cwCollector
 			Name: "cloudwatch_exporter_scrape_duration_seconds",
 			Help: "Time this CloudWatch scrape took, in seconds.",
 		}),
+		ScrapeTimeBuckets: prometheus.NewHistogram(prometheus.HistogramOpts{
+			Name: "cloudwatch_exporter_scrape_duration_seconds_buckets",
+			Help: "Time this CloudWatch scrape took, in seconds and shown in buckets",
+		}),
 		ErroneousRequests: prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: "cloudwatch_exporter_erroneous_requests",
 			Help: "The number of erroneous request made by this scrape.",
+		}),
+		SuccessfulRequests: prometheus.NewGauge(prometheus.GaugeOpts{
+			Name: "cloudwatch_exporter_successful_requests",
+			Help: "The number of successful request made by this scrape.",
 		}),
 		Template: templates[taskName],
 	}, nil
@@ -121,15 +131,21 @@ func NewCwCollector(target string, taskName string, region string) (*cwCollector
 func (c *cwCollector) Collect(ch chan<- prometheus.Metric) {
 	now := time.Now()
 	scrape(c, ch)
-	c.ScrapeTime.Set(time.Since(now).Seconds())
+	timeSeconds := time.Since(now).Seconds()
+	c.ScrapeTime.Set(timeSeconds)
+	c.ScrapeTimeBuckets.Observe(timeSeconds)
 
 	ch <- c.ScrapeTime
+	ch <- c.ScrapeTimeBuckets
 	ch <- c.ErroneousRequests
+	ch <- c.SuccessfulRequests
 }
 
 func (c *cwCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- c.ScrapeTime.Desc()
+	ch <- c.ScrapeTimeBuckets.Desc()
 	ch <- c.ErroneousRequests.Desc()
+	ch <- c.SuccessfulRequests.Desc()
 
 	for m := range c.Template.Metrics {
 		ch <- c.Template.Metrics[m].Desc
