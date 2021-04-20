@@ -118,8 +118,12 @@ func scrape(collector *cwCollector, ch chan<- prometheus.Metric) {
 		totalRequests.Inc()
 
 		if err != nil {
+			collector.ErroneousRequests.Inc()
 			fmt.Println(err)
 			continue
+		}
+		else {
+			collector.SuccessfulRequests.Inc()
 		}
 
 		for nextToken!=nil {
@@ -129,8 +133,12 @@ func scrape(collector *cwCollector, ch chan<- prometheus.Metric) {
 				NextToken: nextToken,
 			})		
 			if err != nil {
+				collector.ErroneousRequests.Inc()
 				fmt.Println(err)
 				continue
+			}
+			else {
+				collector.SuccessfulRequests.Inc()
 			}
 			nextToken=result.NextToken
 			metrics=append(metrics,result.Metrics...)
@@ -190,6 +198,9 @@ func scrapeSingleDataPoint(collector *cwCollector, ch chan<- prometheus.Metric,p
 		collector.ErroneousRequests.Inc()
 		fmt.Println(err)
 		return err
+	}
+	else {
+		collector.SuccessfulRequests.Inc()
 	}
 
 	// There's nothing in there, don't publish the metric
