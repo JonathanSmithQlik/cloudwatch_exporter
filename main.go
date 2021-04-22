@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	listenAddress = flag.String("web.listen-address", ":9042", "Address on which to expose metrics and web interface.")
+	listenAddress = flag.String("web.listen-address", ":9043", "Address on which to expose metrics and web interface.")
 	metricsPath   = flag.String("web.telemetry-path", "/metrics", "Path under which to expose exporter's metrics.")
 	scrapePath    = flag.String("web.telemetry-scrape-path", "/scrape", "Path under which to expose CloudWatch metrics.")
 	configFile    = flag.String("config.file", "config.yml", "Path to configuration file.")
@@ -22,6 +22,7 @@ var (
 	globalRegistry *prometheus.Registry
 	settings       *config.Settings
 	totalRequests  prometheus.Counter
+	totalErrors	   prometheus.Counter
 	configMutex    = &sync.Mutex{}
 )
 
@@ -99,7 +100,13 @@ func main() {
 		Help: "API requests made to CloudWatch",
 	})
 
+	totalErrors = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "cloudwatch_errors_total",
+		Help: "Failed API requests made to CloudWatch",
+	})
+
 	globalRegistry.MustRegister(totalRequests)
+	globalRegistry.MustRegister(totalErrors)
 
 	prometheus.DefaultGatherer = globalRegistry
 

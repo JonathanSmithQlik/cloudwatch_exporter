@@ -36,6 +36,7 @@ func scrape(collector *cwCollector, ch chan<- prometheus.Metric) {
 
 		now := time.Now()
 		end := now.Add(time.Duration(-metric.ConfMetric.DelaySeconds) * time.Second)
+		//status := http.StatusOK
 
 		params := &cloudwatch.GetMetricStatisticsInput{
 			EndTime:   aws.Time(end),
@@ -47,6 +48,8 @@ func scrape(collector *cwCollector, ch chan<- prometheus.Metric) {
 			Dimensions: []*cloudwatch.Dimension{},
 			Unit:       nil,
 		}
+
+		collector.ScrapeDurationHistogram.Observe(time.Since(now).Seconds())
 
 		dimensions:=[]*cloudwatch.Dimension{}
 
@@ -118,12 +121,9 @@ func scrape(collector *cwCollector, ch chan<- prometheus.Metric) {
 		totalRequests.Inc()
 
 		if err != nil {
-			collector.ErroneousRequests.Inc()
+			totalErrors.Inc()
 			fmt.Println(err)
 			continue
-		}
-		else {
-			collector.SuccessfulRequests.Inc()
 		}
 
 		for nextToken!=nil {
@@ -133,15 +133,20 @@ func scrape(collector *cwCollector, ch chan<- prometheus.Metric) {
 				NextToken: nextToken,
 			})		
 			if err != nil {
-				collector.ErroneousRequests.Inc()
+				totalErrors.Inc()
 				fmt.Println(err)
 				continue
 			}
-			else {
-				collector.SuccessfulRequests.Inc()
-			}
+
 			nextToken=result.NextToken
 			metrics=append(metrics,result.Metrics...)
+			totalRequests.Inc()
+
+			if err != nil {
+				totalErrors.Inc()
+				fmt.Println(err)
+				continue
+			}
 		}
 		
 		//For each metric returned by aws
@@ -193,13 +198,12 @@ func scrape(collector *cwCollector, ch chan<- prometheus.Metric) {
 func scrapeSingleDataPoint(collector *cwCollector, ch chan<- prometheus.Metric,params *cloudwatch.GetMetricStatisticsInput,metric *cwMetric,labels []string,svc *cloudwatch.CloudWatch) error {
 	resp, err := svc.GetMetricStatistics(params)
 	totalRequests.Inc()
-
+	
 	if err != nil {
 		collector.ErroneousRequests.Inc()
 		fmt.Println(err)
 		return err
-	}
-	else {
+	} else {
 		collector.SuccessfulRequests.Inc()
 	}
 
