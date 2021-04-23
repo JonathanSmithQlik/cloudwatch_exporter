@@ -129,3 +129,4 @@ func main() {
 
 	// Start serving for clients
 	log.Fatal(http.ListenAndServe(*listenAddress, nil))
+}
