@@ -22,7 +22,7 @@ var (
 	globalRegistry *prometheus.Registry
 	settings       *config.Settings
 	totalRequests  prometheus.Counter
-	totalErrors  prometheus.Counter
+	totalErrors    prometheus.Counter
 	configMutex    = &sync.Mutex{}
 )
 
@@ -129,4 +129,3 @@ func main() {
 
 	// Start serving for clients
 	log.Fatal(http.ListenAndServe(*listenAddress, nil))
-}
