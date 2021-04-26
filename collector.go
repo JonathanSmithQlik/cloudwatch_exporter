@@ -134,7 +134,6 @@ func (c *cwCollector) Collect(ch chan<- prometheus.Metric) {
 	scrape(c, ch)
 	timeSeconds := time.Since(now).Seconds()
 	c.ScrapeTime.Set(timeSeconds)
-	//c.ScrapeDurationHistogram.Observe(timeSeconds)
 
 	ch <- c.ScrapeTime
 	ch <- c.ScrapeDurationHistogram
