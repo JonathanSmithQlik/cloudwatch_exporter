@@ -1,4 +1,12 @@
 tasks:
+ - name: all
+   metrics:
+    - aws_namespace: "AWS/Lambda"
+      aws_dimensions: [FunctionName]
+      aws_metric_name: Errors
+      aws_statistics: [Sum]
+      range_seconds: 60 
+
  - name: billing
    default_region: us-east-1
    metrics:

@@ -48,7 +48,7 @@ func scrape(collector *cwCollector, ch chan<- prometheus.Metric) {
 			Unit:       nil,
 		}
 
-		collector.ScrapeDurationHistogram.Observe(time.Since(now).Seconds())
+		//collector.ScrapeDurationHistogram.Observe(time.Since(now).Seconds())
 
 		dimensions:=[]*cloudwatch.Dimension{}
 
@@ -111,6 +111,7 @@ func scrape(collector *cwCollector, ch chan<- prometheus.Metric) {
 
 		
 		// Get all the metric to select the ones who'll match the regex
+		now = time.Now()
 		result, err := svc.ListMetrics(&cloudwatch.ListMetricsInput{
 			MetricName: aws.String(metric.ConfMetric.Name),
 			Namespace:  aws.String(metric.ConfMetric.Namespace),
@@ -118,14 +119,19 @@ func scrape(collector *cwCollector, ch chan<- prometheus.Metric) {
 		nextToken:=result.NextToken
 		metrics:=result.Metrics
 		totalRequests.Inc()
+		fmt.Println("Observe Hist.")
+		collector.ScrapeDurationHistogram.Observe(time.Since(now).Seconds())
 
 		if err != nil {
 			totalErrors.Inc()
+			collector.ErroneousRequests.Inc()
 			fmt.Println(err)
 			continue
 		}
+		collector.SuccessfulRequests.Inc()
 
 		for nextToken!=nil {
+			now = time.Now()
 			result, err := svc.ListMetrics(&cloudwatch.ListMetricsInput{
 				MetricName: aws.String(metric.ConfMetric.Name),
 				Namespace:  aws.String(metric.ConfMetric.Namespace),
@@ -133,12 +139,16 @@ func scrape(collector *cwCollector, ch chan<- prometheus.Metric) {
 			})	
 
 			totalRequests.Inc()
+			fmt.Println("Observe Hist.")
+			collector.ScrapeDurationHistogram.Observe(time.Since(now).Seconds())
 	
 			if err != nil {
 				totalErrors.Inc()
+				collector.ErroneousRequests.Inc()
 				fmt.Println(err)
 				continue
 			}
+			collector.SuccessfulRequests.Inc()
 
 			nextToken=result.NextToken
 			metrics=append(metrics,result.Metrics...)
@@ -191,10 +201,14 @@ func scrape(collector *cwCollector, ch chan<- prometheus.Metric) {
 
 //Send a single dataPoint to the Prometheus lib
 func scrapeSingleDataPoint(collector *cwCollector, ch chan<- prometheus.Metric,params *cloudwatch.GetMetricStatisticsInput,metric *cwMetric,labels []string,svc *cloudwatch.CloudWatch) error {
+	now := time.Now()
 	resp, err := svc.GetMetricStatistics(params)
 	totalRequests.Inc()
+	fmt.Println("Observe Hist.")
+	collector.ScrapeDurationHistogram.Observe(time.Since(now).Seconds())
 	
 	if err != nil {
+		totalErrors.Inc()
 		collector.ErroneousRequests.Inc()
 		fmt.Println(err)
 		return err
