@@ -132,7 +132,6 @@ func NewCwCollector(target string, taskName string, region string) (*cwCollector
 func (c *cwCollector) Collect(ch chan<- prometheus.Metric) {
 	now := time.Now()
 	scrape(c, ch)
-	timeSeconds := time.Since(now).Seconds()
 	c.ScrapeTime.Set(time.Since(now).Seconds())
 
 	ch <- c.ScrapeTime
