@@ -117,7 +117,6 @@ func scrape(collector *cwCollector, ch chan<- prometheus.Metric) {
 		nextToken:=result.NextToken
 		metrics:=result.Metrics
 		totalRequests.Inc()
-		fmt.Println("Observe Hist.")
 		collector.ScrapeDurationHistogram.Observe(time.Since(now).Seconds())
 
 		if err != nil {
@@ -137,7 +136,6 @@ func scrape(collector *cwCollector, ch chan<- prometheus.Metric) {
 			})	
 
 			totalRequests.Inc()
-			fmt.Println("Observe Hist.")
 			collector.ScrapeDurationHistogram.Observe(time.Since(now).Seconds())
 	
 			if err != nil {
@@ -202,7 +200,6 @@ func scrapeSingleDataPoint(collector *cwCollector, ch chan<- prometheus.Metric,p
 	now := time.Now()
 	resp, err := svc.GetMetricStatistics(params)
 	totalRequests.Inc()
-	fmt.Println("Observe Hist.")
 	collector.ScrapeDurationHistogram.Observe(time.Since(now).Seconds())
 	
 	if err != nil {
