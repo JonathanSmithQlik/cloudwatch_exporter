@@ -48,8 +48,6 @@ func scrape(collector *cwCollector, ch chan<- prometheus.Metric) {
 			Unit:       nil,
 		}
 
-		//collector.ScrapeDurationHistogram.Observe(time.Since(now).Seconds())
-
 		dimensions:=[]*cloudwatch.Dimension{}
 
 		//This map will hold dimensions name which has been already collected
