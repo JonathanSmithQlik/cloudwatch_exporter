@@ -195,7 +195,6 @@ func scrape(collector *cwCollector, ch chan<- prometheus.Metric) {
 func scrapeSingleDataPoint(collector *cwCollector, ch chan<- prometheus.Metric,params *cloudwatch.GetMetricStatisticsInput,metric *cwMetric,labels []string,svc *cloudwatch.CloudWatch) error {
 	resp, err := svc.GetMetricStatistics(params)
 	totalRequests.Inc()
-	
 	if err != nil {
 		totalErrors.Inc()
 		collector.ErroneousRequests.Inc()
