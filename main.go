@@ -29,7 +29,7 @@ var (
 	observers      = map[string]prometheus.ObserverVec{"scrapeDurationHistogram": prometheus.NewHistogramVec(prometheus.HistogramOpts{
 					Name: "cloudwatch_exporter_scrape_duration_seconds_buckets",
 					Help: "Time this CloudWatch scrape took, in seconds and shown in buckets",
-					Buckets: []float64{0.1, 0.25, 0.5, 1., 5., 8., 10., },}, []string{}),}
+					Buckets: []float64{.1, .25, .5, 1., 2., 5., 8., 16., 30., },}, []string{}),}
 	)
 	
 func loadConfigFile() error {
