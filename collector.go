@@ -31,7 +31,6 @@ type cwCollector struct {
 	ScrapeTime        prometheus.Gauge
 	ErroneousRequests prometheus.Counter
 	Template          *cwCollectorTemplate
-	ScrapeDurationHistogram	prometheus.Histogram
 	SuccessfulRequests prometheus.Counter
 }
 
@@ -112,11 +111,6 @@ func NewCwCollector(target string, taskName string, region string) (*cwCollector
 			Name: "cloudwatch_exporter_scrape_duration_seconds",
 			Help: "Time this CloudWatch scrape took, in seconds.",
 		}),
-		ScrapeDurationHistogram: prometheus.NewHistogram(prometheus.HistogramOpts{
-			Name: "cloudwatch_exporter_scrape_duration_seconds_buckets",
-			Help: "Time this CloudWatch scrape took, in seconds and shown in buckets",
-			Buckets: []float64{0.1, 0.25, 0.5, 1., 5., 8., 10., },
-		}),
 		ErroneousRequests: prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: "cloudwatch_exporter_erroneous_requests",
 			Help: "The number of erroneous request made by this scrape.",
@@ -135,14 +129,12 @@ func (c *cwCollector) Collect(ch chan<- prometheus.Metric) {
 	c.ScrapeTime.Set(time.Since(now).Seconds())
 
 	ch <- c.ScrapeTime
-	ch <- c.ScrapeDurationHistogram
 	ch <- c.ErroneousRequests
 	ch <- c.SuccessfulRequests
 }
 
 func (c *cwCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- c.ScrapeTime.Desc()
-	ch <- c.ScrapeDurationHistogram.Desc()
 	ch <- c.ErroneousRequests.Desc()
 	ch <- c.SuccessfulRequests.Desc()
 
